@@ -43,7 +43,7 @@ urls.each do |url|
 				end
 				puts annee
 				
-				#pour vérifier
+				#pour vérifier ultérieurement si notre extraction est conforme à la réalité, il est toujours bon de copier l'url de la page d'un produit, ainsi que l'url de l'image correspondant au produit
 				urlProd = contenu.css("p.nom a")[i]["href"]
 				produit["URL"] = urlProd
 				puts urlProd
@@ -51,17 +51,22 @@ urls.each do |url|
 				image = image[image.index("_")+1..-1]
 				puts image
 				produit["URL-image"] = "http://s7d9.scene7.com/is/image/SAQ/" + image.to_s + "-1"
+				
+				#on va ensuite chercher le type de produit dont il est question ("vin rouge", "vodka", "bière", etc.)
 				description = contenu.css("p.desc")[i].text.strip
 				type = description[0..description.index("\r")-1]
 				puts type
 				produit["Type"] = type
 				
 				# certains produits ne sont pas des bouteilles d'alcool; on les exclut donc de notre extraction avec la condition ci-dessous
-				
 				if type != "Boîte cadeau" && type != "Sac cadeau" && type != "Alcootest" && type != "Article de bar" && type != "Pompe et bouchon" && type != "Sac réutilisable" && type != "Tire-bouchon" && type != "Bec verseur" && type != "Carte-cadeau"
+					
+					#si le produit est bel et bien de l'alcool, on extrait d'autres informations comme son pays d'origine et son volume
 					pays = description[description.index("\n")..description.index(",")-1].gsub("\n", "").gsub("\r", "").gsub(/\u00A0/, "").strip
 					produit["Pays"] = pays
 					puts pays
+					
+					#le volume est une information très importante, puisqu'elle nous permet de comparer des produits réellement identiques
 					volume = description[description.index(",")+2..description.index(",")+10].strip
 					produit["Volume"] = volume
 					puts volume
@@ -69,9 +74,14 @@ urls.each do |url|
 					produit["Pays"] = "Inconnu"
 					produit["Volume"] = "NSP"
 				end
+				
+				#on va enfin chercher le prix du produit
+				#il est d'abord sous forme d'une chaîne de caractères
 				prix = contenu.css("td.price a")[i].text
 				puts prix
 				produit["Prix txt"] = prix
+				
+				#on traduit ensuite la chaînes de caractères en un nombre afin de faire des calculs plus tard
 				prix2 = prix[0..-3].gsub(",",".").gsub(/\u00A0/, "").to_f
 				puts prix2
 				produit["Prix"] = prix2
@@ -87,7 +97,7 @@ end
 
 puts tout #affichage aux fins de vérification
 
-#quand tout est terminé, on produit un fichier CSV contenant l'ensemble de l'inventaire de la SAQ à ce moment-ci
+#quand tout est terminé, on produit un fichier CSV à partir du hash contenant l'ensemble de l'inventaire de la SAQ à ce moment-ci
 CSV.open(fichier, "wb") do |csv|
   csv << tout.first.keys
   tout.each do |hash|
