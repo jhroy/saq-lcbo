@@ -5,13 +5,16 @@ require "csv"
 require "nokogiri"
 require "open-uri"
 
+# baptême du fichier dans lequel on va mettre nos résultats
 fichier = "saq.csv"
 
+# création d'un array dans laquelle on place nos trois fichiers html créés à partir des résultats de recherche sur le site saq.com
 urls = ["saq1.html", "saq2.html", "saq3.html"]
 
 tout = []
 n = 0
 
+# boucle pour passer à travers chacun des fichiers html 
 urls.each do |url|
 
 	page = Nokogiri::HTML(open(url))
@@ -19,20 +22,28 @@ urls.each do |url|
 	page.css("div.wrapper-middle-rech").map { |contenu|
 
 		(0..3).each do |i|
-			produit = {}
+			produit = {} #création d'un hash pour chacun des produits rencontrés sur la page
+			
+			#je crée d'abord un numéro séquentiel pour chacun des produits rencontrés
 			n += 1
 			produit["No"] = n
+			
+			#il arrive que certains "emplacements" soient vides; on les saute avec la condition ci-dessous
+			
 			if contenu.css("p.nom a")[i] != nil
 				nom = contenu.css("p.nom a")[i]["title"][40..-1]
-				produit["Nom"] = nom
-				puts nom
+				produit["Nom"] = nom #on extrait le nom du produit
+				puts nom #affichage aux fins de vérification
+				#dans certains noms de produits, il y a une année généralement placée à la fin; si c'est le cas, on va la chercher pour nous donner l'année du produit (millésime)
 				if nom[-4..-3] == "20" || nom[-4..-3] == "19"
 					annee = nom[-4..-1]
 					produit["Année"] = annee
 				elsif 
 					produit["Année"] = "Inconnue"
 				end
-				puts annee					
+				puts annee
+				
+				#pour vérifier
 				urlProd = contenu.css("p.nom a")[i]["href"]
 				produit["URL"] = urlProd
 				puts urlProd
@@ -44,6 +55,9 @@ urls.each do |url|
 				type = description[0..description.index("\r")-1]
 				puts type
 				produit["Type"] = type
+				
+				# certains produits ne sont pas des bouteilles d'alcool; on les exclut donc de notre extraction avec la condition ci-dessous
+				
 				if type != "Boîte cadeau" && type != "Sac cadeau" && type != "Alcootest" && type != "Article de bar" && type != "Pompe et bouchon" && type != "Sac réutilisable" && type != "Tire-bouchon" && type != "Bec verseur" && type != "Carte-cadeau"
 					pays = description[description.index("\n")..description.index(",")-1].gsub("\n", "").gsub("\r", "").gsub(/\u00A0/, "").strip
 					produit["Pays"] = pays
@@ -64,17 +78,16 @@ urls.each do |url|
 
 			end
 			puts n
-			tout.push produit
+			tout.push produit #chaque hash (1 produit) est placé dans un array contenant l'ensemble de notre extraction jusqu'à maintenant
 		end
 
 	}
 
 end
 
-puts tout
+puts tout #affichage aux fins de vérification
 
-# 	# puts tout
-
+#quand tout est terminé, on produit un fichier CSV contenant l'ensemble de l'inventaire de la SAQ à ce moment-ci
 CSV.open(fichier, "wb") do |csv|
   csv << tout.first.keys
   tout.each do |hash|
