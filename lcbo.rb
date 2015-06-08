@@ -62,8 +62,10 @@ saq = CSV.read("saq.csv", headers:true)
 							match["Nom SAQ"] = produit[1] #on y met d'abord le nom du produit SAQ recherché
 							match["Nom LCBO"] = resultats[i]["name"] #ensuite: le nom du produit LCBO correspondant au résultat
 							match["Prix SAQ"] = produit[9] #le prix demandé par la SAQ
-							match["Prix LCBO"] = resultats[i]["regular_price_in_cents"]/100 #le prix demandé par la LCBO
-							match["Différence"] = (match["Prix SAQ"].to_f - match["Prix LCBO"]).round(2) #on calcule tout de suite la différence de prix, même si on n'est pas certain que ce sont deux produits comparables
+							prixLCBO = resultats[i]["regular_price_in_cents"].to_f
+							prixLCBO = (prixLCBO/100)
+							match["Prix LCBO"] = prixLCBO #le prix demandé par la LCBO
+							match["Différence"] = (match["Prix SAQ"].to_f - match["Prix LCBO"].to_f).round(2) #on calcule tout de suite la différence de prix, même si on n'est pas certain que ce sont deux produits comparables
 							match["Diff. %"] = (match["Différence"]/match["Prix LCBO"]).round(2) #on calcule aussi immédiatement le pourcentage de la différence par rapport au prix LCBO
 
 							#on extrait d'autres infos du JSON
