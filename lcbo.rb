@@ -67,7 +67,7 @@ puts saq.size
 							match["Prix SAQ"] = produit[9] #le prix demandé par la SAQ
 							prixLCBO = resultats[i]["regular_price_in_cents"].to_f
 							prixLCBO = (prixLCBO/100)
-							match["Prix LCBO"] = prixLCBO
+							match["Prix LCBO"] = prixLCBO #le prix demandé par la LCBO
 							match["Différence"] = (match["Prix SAQ"].to_f - match["Prix LCBO"].to_f).round(2) #on calcule tout de suite la différence de prix, même si on n'est pas certain que ce sont deux produits comparables
 							match["Diff. %"] = ((match["Différence"].to_f/match["Prix LCBO"].to_f)*100).round(2) #on calcule aussi immédiatement le pourcentage de la différence par rapport au prix LCBO
 
